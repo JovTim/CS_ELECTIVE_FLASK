@@ -102,3 +102,24 @@ def create_book():
     new_book = fetch_book_by_id(book_id)
     return jsonify({"success": True, 
                     "data": new_book}), HTTPStatus.CREATED
+
+@app.route("/api/books/<int:book_id>", methods=["PUT"])
+def update_book(book_id):
+    if not request.is_json:
+        return jsonify({"success": False, 
+                        "error": "Content-type must be application/json"}), HTTPStatus.BAD_REQUEST
+
+    data = request.get_json()
+    book = fetch_book_by_id(book_id)
+    if book is None:
+        return jsonify({"success": False, 
+                        "error": "Book not found"}), HTTPStatus.NOT_FOUND
+
+    success = update_book_in_db(book_id, data)
+    if not success:
+        return jsonify({"success": False, 
+                        "error": "Failed to update book"}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+    updated_book = fetch_book_by_id(book_id)
+    return jsonify({"success": True, 
+                    "data": updated_book}), HTTPStatus.OK
