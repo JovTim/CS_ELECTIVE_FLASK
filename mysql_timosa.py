@@ -123,3 +123,31 @@ def update_book(book_id):
     updated_book = fetch_book_by_id(book_id)
     return jsonify({"success": True, 
                     "data": updated_book}), HTTPStatus.OK
+
+@app.route("/api/books/<int:book_id>", methods=["DELETE"])
+def delete_book(book_id):
+    book = fetch_book_by_id(book_id)
+    if book is None:
+        return jsonify({"success": False, 
+                        "error": "Book not found"}), HTTPStatus.NOT_FOUND
+
+    success = delete_book_from_db(book_id)
+    if not success:
+        return jsonify({"success": False, 
+                        "error": "Failed to delete book"}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+    return jsonify({"success": True, 
+                    "message": "Book deleted successfully"}), HTTPStatus.OK
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"success": False, 
+                    "error": "Resource not found"}), HTTPStatus.NOT_FOUND
+
+@app.errorhandler(500)
+def internal_server(error):
+    return jsonify({"success": False, 
+                    "error": "Internal Server Error"}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+if __name__ == "__main__":
+    app.run(debug=True)
