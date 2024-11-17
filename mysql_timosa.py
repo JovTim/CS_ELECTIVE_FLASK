@@ -54,3 +54,20 @@ def delete_book_from_db(book_id):
             return cursor.rowcount > 0
     finally:
         connection.close()
+
+@app.route("/api/books", methods=["GET"])
+def get_books():
+    books = fetch_all_books()
+    return jsonify({"success": True, 
+                    "data": books, 
+                    "total": len(books)}), HTTPStatus.OK
+
+@app.route("/api/books/<int:book_id>", methods=["GET"])
+def get_book(book_id):
+    book = fetch_book_by_id(book_id)
+    if book is None:
+        return jsonify({"success": False, 
+                        "error": "Book not found"}), HTTPStatus.NOT_FOUND
+    
+    return jsonify({"success": True, 
+                    "data": book}), HTTPStatus.OK
