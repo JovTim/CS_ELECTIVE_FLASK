@@ -32,6 +32,19 @@ def fetch_book_by_id(book_id):
     finally:
         connection.close()
 
+def insert_book(data):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO books (title, author, year) VALUES (%s, %s, %s)",
+                (data["title"], data["author"], data["year"]),
+            )
+            connection.commit()
+            return cursor.lastrowid
+    finally:
+        connection.close()
+
 def update_book_in_db(book_id, data):
     connection = get_db_connection()
     try:
@@ -71,3 +84,21 @@ def get_book(book_id):
     
     return jsonify({"success": True, 
                     "data": book}), HTTPStatus.OK
+
+@app.route("/api/books", methods=["POST"])
+def create_book():
+    if not request.is_json:
+        return jsonify({"success": False, 
+                        "error": "Content-type must be application/json"}), HTTPStatus.BAD_REQUEST
+
+    data = request.get_json()
+    required_fields = ["title", "author", "year"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"success": False, 
+                            "error": f"Missing required field: {field}"}), HTTPStatus.BAD_REQUEST
+
+    book_id = insert_book(data)
+    new_book = fetch_book_by_id(book_id)
+    return jsonify({"success": True, 
+                    "data": new_book}), HTTPStatus.CREATED
