@@ -22,3 +22,12 @@ def fetch_all_books():
             return cursor.fetchall()
     finally:
         connection.close()
+
+def fetch_book_by_id(book_id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+            return cursor.fetchone()
+    finally:
+        connection.close()
